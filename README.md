@@ -13,3 +13,9 @@ YourSmartHome è un'applicazione per la gestione domotica dedicata a chi trascor
 ## Documentazione
 Link alla cartella condivisa contenente la documentazione delle varie fasi: 
 [Clicca qui per accedere alla cartella condivisa](https://drive.google.com/drive/folders/1EXrkgIhWh9Ozd0EjyM_plKwBIIrN7t4p?usp=sharing)
+
+## Team
+* Azzato Nicola
+* De Martino Gaia
+* Graziosi Gerardo
+* Vanacore Antonio
