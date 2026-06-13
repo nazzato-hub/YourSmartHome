@@ -1,0 +1,72 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: yoursmarthome-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       yoursmarthome
+      POSTGRES_USER:     ysh_user
+      POSTGRES_PASSWORD: ysh_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ysh_user -d yoursmarthome"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend Node.js ─────────────────────────────────────────────────────────
+  backend:
+    build: .
+    container_name: yoursmarthome-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT:        3000
+      NODE_ENV:    development
+      JWT_SECRET:  cambia_questa_stringa_in_produzione
+      DB_HOST:     postgres
+      DB_PORT:     5432
+      DB_NAME:     yoursmarthome
+      DB_USER:     ysh_user
+      DB_PASSWORD: ysh_password
+      ALLOWED_ORIGINS: "*"
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── pgAdmin ─────────────────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: yoursmarthome-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@yoursmarthome.com
+      PGADMIN_DEFAULT_PASSWORD: admin_password
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+
+networks:
+  default:
+    name: yoursmarthome-net
