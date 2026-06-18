@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS invito (
 CREATE TABLE IF NOT EXISTS stanza (
   id_stanza  SERIAL PRIMARY KEY,
   nome       VARCHAR(100) NOT NULL,
-  icona      VARCHAR(10) DEFAULT '🏠',
+  icona      VARCHAR(100) DEFAULT '🏠',
   id_gruppo  INTEGER REFERENCES gruppo_familiare(id_gruppo) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -55,7 +55,6 @@ CREATE TABLE IF NOT EXISTS dispositivo (
   stato_attuale    BOOLEAN DEFAULT FALSE,
   consumo_watt     FLOAT DEFAULT 0,
   id_stanza        INTEGER REFERENCES stanza(id_stanza) ON DELETE SET NULL,
-  id_gruppo        INTEGER REFERENCES gruppo_familiare(id_gruppo) ON DELETE CASCADE,
   timer_minuti     INTEGER DEFAULT NULL,
   sched_attivo     BOOLEAN DEFAULT FALSE,
   sched_giorni     VARCHAR(50) DEFAULT NULL,
@@ -98,7 +97,7 @@ CREATE TABLE IF NOT EXISTS tapparelle (
 CREATE TABLE IF NOT EXISTS scenario (
   id_scenario   SERIAL PRIMARY KEY,
   nome_scenario VARCHAR(100) NOT NULL,
-  icona_app     VARCHAR(10) DEFAULT '⚡',
+  icona_app     VARCHAR(100) DEFAULT '⚡',
   descrizione   TEXT,
   colore        VARCHAR(7) DEFAULT '#7C5CFF',
   is_active     BOOLEAN DEFAULT FALSE,
