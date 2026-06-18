@@ -89,17 +89,12 @@ async function seed() {
     await client.connect();
     console.log('[Seed] Connessione riuscita. Avvio inserimento dispositivi...');
 
-    // Trova il primo gruppo registrato nel sistema (default a 1 se vuoto)
-    const groupRes = await client.query('SELECT id_gruppo FROM gruppo_familiare LIMIT 1');
-    const firstGroupId = groupRes.rows[0]?.id_gruppo || 1;
-    console.log(`[Seed] Tutti i dispositivi di test verranno assegnati al gruppo ID: ${firstGroupId}`);
-
     for (const d of DEVICES_TO_SEED) {
       // Inserisce dispositivo generico
       const devRes = await client.query(
-        `INSERT INTO dispositivo (nome, tipo_dispositivo, stato_attuale, consumo_watt, id_stanza, id_gruppo)
-         VALUES ($1, $2, false, $3, null, $4) RETURNING id_dispositivo`,
-        [d.nome, d.tipo, d.watt, firstGroupId]
+        `INSERT INTO dispositivo (nome, tipo_dispositivo, stato_attuale, consumo_watt, id_stanza)
+         VALUES ($1, $2, false, $3, null) RETURNING id_dispositivo`,
+        [d.nome, d.tipo, d.watt]
       );
       const idDev = devRes.rows[0].id_dispositivo;
 
