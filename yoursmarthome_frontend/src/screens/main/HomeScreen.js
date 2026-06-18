@@ -9,8 +9,7 @@ import AppHeader from '../../components/AppHeader';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDeviceStore } from '../../store/DeviceStore';
 import { DEVICE_TYPES, DEVICE_ICONS, DEVICE_ICONS_OFF } from '../../store/deviceConstants';
-import * as Notifications from 'expo-notifications';
-import { api, getGruppo } from '../../services/api';
+const { api, getGruppo } = require('../../services/api');
 
 
 const FILTER_TABS = ['Tutti', 'Luci', 'Clima', 'Sicurezza', 'Altro'];
@@ -47,8 +46,7 @@ function getScenarioIcon(icona) {
 }
 
 export default function HomeScreen({ navigation }) {
-  const { devices, toggleDevice, groupId, loadData } = useDeviceStore();
-
+  const { devices, toggleDevice, loadData, showNotificationBanner } = useDeviceStore();
   const [activeFilter, setActiveFilter] = useState('Tutti');
   const [budgetPct, setBudgetPct] = useState('73%');
   const [isBudgetOk, setIsBudgetOk] = useState(true);
@@ -90,7 +88,7 @@ export default function HomeScreen({ navigation }) {
         });
       }
 
-      // Controlla nuove notifiche per notifica locale
+      // Controlla nuove notifiche per notifica locale in-app
       try {
         const notifs = await api.getNotifs();
         if (notifs && notifs.length > 0) {
@@ -103,20 +101,13 @@ export default function HomeScreen({ navigation }) {
               const notifTime = new Date(n.timestamp).getTime();
               const nowTime = Date.now();
               if (nowTime - notifTime < 120000) {
-                const { status } = await Notifications.getPermissionsAsync();
-                if (status !== 'granted') {
-                  await Notifications.requestPermissionsAsync();
+                if (showNotificationBanner) {
+                  showNotificationBanner(
+                    n.urgente ? "🚨 Allarme Sicurezza!" : "🔔 Nuova Notifica",
+                    n.messaggio,
+                    n.tipo
+                  );
                 }
-
-                await Notifications.scheduleNotificationAsync({
-                  content: {
-                    title: n.urgente ? "Allarme Sicurezza!" : "Nuova Notifica",
-                    body: n.messaggio,
-                    sound: true,
-                    priority: Notifications.AndroidNotificationPriority.HIGH,
-                  },
-                  trigger: null,
-                });
               }
             }
           }
@@ -148,8 +139,7 @@ export default function HomeScreen({ navigation }) {
     
     const timer = setInterval(fetchStatsAndAlerts, 10000);
     return () => clearInterval(timer);
-  }, [groupId]);
-
+  }, []);
 
   const handleToggleScenario = async (sc) => {
     try {
