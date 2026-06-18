@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DEVICE_TYPES, DEVICE_ICONS } from './deviceConstants';
-import { api, getGruppo } from '../services/api';
+import { api } from '../services/api';
 
 export { DEVICE_TYPES, DEVICE_ICONS };
 
@@ -48,9 +50,7 @@ function reducer(state, action) {
         ...state,
         rooms: action.rooms || state.rooms,
         devices: action.devices || state.devices,
-        groupId: action.groupId !== undefined ? action.groupId : state.groupId,
       };
-
     case 'TOGGLE_DEVICE':
       return {
         ...state,
@@ -104,15 +104,20 @@ var DeviceContext = createContext(null);
 
 export function DeviceProvider(props) {
   var children = props.children;
-  var result = useReducer(reducer, { rooms: [], devices: [], groupId: null });
+  var result = useReducer(reducer, { rooms: [], devices: [] });
   var state = result[0];
   var dispatch = result[1];
+ 
+  const [inAppNotification, setInAppNotification] = useState(null);
+ 
+  const showNotificationBanner = useCallback(function(title, message, type) {
+    setInAppNotification({ title, message, type });
+  }, []);
 
   // Caricamento asincrono di stanze e dispositivi dal Back-end
   var loadData = useCallback(
     async function() {
       try {
-        const activeGroup = getGruppo ? getGruppo() : null;
         const dbRooms = await api.getRooms();
         const mappedRooms = dbRooms.map(r => ({
           id: String(r.id_stanza),
@@ -139,14 +144,13 @@ export function DeviceProvider(props) {
           schedSpegnimento: d.sched_spegnimento,
         }));
 
-        dispatch({ type: 'SET_DATA', rooms: mappedRooms, devices: mappedDevices, groupId: activeGroup });
+        dispatch({ type: 'SET_DATA', rooms: mappedRooms, devices: mappedDevices });
       } catch (e) {
         console.warn("loadData error:", e.message);
       }
     },
     [dispatch]
   );
-
 
   var getDevicesForRoom = useCallback(
     function(roomId) {
@@ -330,7 +334,6 @@ export function DeviceProvider(props) {
   var value = {
     rooms: state.rooms,
     devices: state.devices,
-    groupId: state.groupId,
     loadData: loadData,
     getDevicesForRoom: getDevicesForRoom,
     getRoomStats: getRoomStats,
@@ -343,11 +346,133 @@ export function DeviceProvider(props) {
     deleteDevice: deleteDevice,
     DEVICE_TYPES: DEVICE_TYPES,
     DEVICE_ICONS: DEVICE_ICONS,
+    showNotificationBanner: showNotificationBanner,
   };
 
-
-  return React.createElement(DeviceContext.Provider, { value: value }, children);
+  return (
+    <DeviceContext.Provider value={value}>
+      {children}
+      <InAppNotificationBanner
+        notification={inAppNotification}
+        onClose={function() { setInAppNotification(null); }}
+      />
+    </DeviceContext.Provider>
+  );
 }
+
+function InAppNotificationBanner(refProps) {
+  var notification = refProps.notification;
+  var onClose = refProps.onClose;
+  var translateY = useRef(new Animated.Value(-150)).current;
+
+  useEffect(function() {
+    if (notification) {
+      Animated.spring(translateY, {
+        toValue: 50,
+        useNativeDriver: true,
+        bounciness: 8,
+      }).start();
+
+      var timer = setTimeout(function() {
+        handleClose();
+      }, 4500);
+
+      return function() { clearTimeout(timer); };
+    }
+  }, [notification]);
+
+  function handleClose() {
+    Animated.timing(translateY, {
+      toValue: -150,
+      duration: 350,
+      useNativeDriver: true,
+    }).start(function() {
+      onClose();
+    });
+  }
+
+  if (!notification) return null;
+
+  var borderColor = '#4FC3F7';
+  var iconName = 'bell-outline';
+  
+  if (notification.type === 'intrusion') {
+    borderColor = '#F87171';
+    iconName = 'alert-octagon';
+  } else if (notification.type === 'budget') {
+    borderColor = '#FBBF24';
+    iconName = 'flash';
+  }
+
+  return (
+    <Animated.View style={[bannerStyles.container, { transform: [{ translateY: translateY }] }]}>
+      <TouchableOpacity 
+        style={[bannerStyles.card, { borderLeftColor: borderColor }]} 
+        activeOpacity={0.9}
+        onPress={handleClose}
+      >
+        <View style={bannerStyles.iconWrapper}>
+          <MaterialCommunityIcons name={iconName} size={24} color={borderColor} />
+        </View>
+        <View style={bannerStyles.textWrapper}>
+          <Text style={bannerStyles.title}>{notification.title}</Text>
+          <Text style={bannerStyles.message} numberOfLines={2}>{notification.message}</Text>
+        </View>
+        <TouchableOpacity style={bannerStyles.closeButton} onPress={handleClose}>
+          <MaterialCommunityIcons name="close" size={16} color="#737373" />
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
+var bannerStyles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 9999,
+    paddingHorizontal: 16,
+  },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(25, 25, 25, 0.95)',
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    padding: 14,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 10,
+    alignItems: 'center',
+  },
+  iconWrapper: {
+    marginRight: 12,
+  },
+  textWrapper: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  title: {
+    color: '#EAEAEA',
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  message: {
+    color: '#A3A3A3',
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  closeButton: {
+    padding: 4,
+  },
+});
 
 export function useDeviceStore() {
   var ctx = useContext(DeviceContext);
