@@ -8,7 +8,7 @@ import {
 import { Colors, Typography, Spacing, Radius, Shadow } from '../../theme';
 import AppHeader from '../../components/AppHeader';
 
-import { api } from '../../services/api';
+const { api } = require('../../services/api');
 
 const mapDbNotification = (n) => {
   let icon = '🔔';
