@@ -1,3 +1,4 @@
+
 // Polyfill per correggere il bug di React Native 0.81+ (TypeError: Cannot assign to read-only property 'NONE')
 if (typeof global !== 'undefined') {
   if (global.Event) {
