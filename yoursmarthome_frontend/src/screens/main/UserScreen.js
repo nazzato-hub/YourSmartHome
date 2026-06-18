@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   View, Text, ScrollView, TouchableOpacity,
@@ -10,7 +9,7 @@ import { Colors, Typography, Spacing, Radius, Shadow } from '../../theme';
 import { SmartToggle } from '../../components';
 import AppHeader from '../../components/AppHeader';
 import { useDeviceStore } from '../../store/DeviceStore';
-import { api, setGruppo, getGruppo } from '../../services/api';
+const { api } = require('../../services/api');
 
 /* ──────────────────────────────────────────
    Family Members data + components
@@ -135,8 +134,7 @@ const SETTINGS_SECTIONS = [
    Main Screen
 ────────────────────────────────────────── */
 export default function UserScreen({ navigation }) {
-  const { devices, rooms, groupId, loadData } = useDeviceStore();
-
+  const { devices, rooms, loadData } = useDeviceStore();
   const [toggles, setToggles] = useState({ notifications: true, nightMode: false, energySaving: true });
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -151,8 +149,6 @@ export default function UserScreen({ navigation }) {
   const [inviteEmail, setInviteEmail] = useState('');
 
   const [isAdmin, setIsAdmin] = useState(false);
-  const [currentUserRole, setCurrentUserRole] = useState('');
-
   const [pinModal, setPinModal] = useState(false);
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -180,33 +176,26 @@ export default function UserScreen({ navigation }) {
     setLoading(true);
     try {
       const user = await api.me();
-      const currentUserId = String(user.id_utente || user.id || '');
       setUserProfile({
-        id: currentUserId,
+        id: String(user.id_utente),
         name: user.nome || user.email.split('@')[0],
         email: user.email,
         avatar: user.avatar || (user.nome || user.email).substring(0, 2).toUpperCase(),
       });
 
       const membersData = await api.getMembri();
-      const mapped = membersData.map(m => {
-        const mId = String(m.id_utente || m.id || '');
-        return {
-          id: mId,
-          name: m.nome || m.email.split('@')[0],
-          email: m.email,
-          role: m.ruolo || m.role,
-          avatar: m.avatar || (m.nome || m.email).substring(0, 2).toUpperCase(),
-          online: mId === currentUserId,
-        };
-      });
+      const mapped = membersData.map(m => ({
+        id: String(m.id_utente),
+        name: m.nome || m.email.split('@')[0],
+        email: m.email,
+        role: m.ruolo,
+        avatar: m.avatar || (m.nome || m.email).substring(0, 2).toUpperCase(),
+        online: m.id_utente === user.id_utente,
+      }));
       setMembers(mapped);
 
-      const currentUserMember = mapped.find(m => m.id === currentUserId);
-      const isUserAdmin = currentUserMember?.role === 'Amministratore';
-      setIsAdmin(isUserAdmin);
-      setCurrentUserRole(currentUserMember?.role || 'Membro');
-
+      const currentUserMember = mapped.find(m => m.id === String(user.id_utente));
+      setIsAdmin(currentUserMember?.role === 'Amministratore');
     } catch (e) {
       console.warn("Impossibile caricare il profilo o i membri:", e.message);
     } finally {
@@ -257,12 +246,9 @@ export default function UserScreen({ navigation }) {
     await loadSentInvites();
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchProfileAndMembers();
-    }, [groupId])
-  );
-
+  useEffect(() => {
+    fetchProfileAndMembers();
+  }, []);
 
   const removeMember = async (id) => {
     Alert.alert(
@@ -345,10 +331,12 @@ export default function UserScreen({ navigation }) {
     try {
       const newGroup = await api.creaGruppo({ nome: newHouseName.trim() });
       Alert.alert('Casa Creata', `Nuova abitazione "${newHouseName}" creata con successo.`);
+      const { setGruppo } = require('../../services/api');
       setGruppo(newGroup.id_gruppo);
       setCreateHouseModal(false);
       setNewHouseName('');
       await loadData();
+      fetchProfileAndMembers();
     } catch (e) {
       Alert.alert('Errore', e.message);
     }
@@ -361,21 +349,16 @@ export default function UserScreen({ navigation }) {
 
   const handleRespondInvite = async (invitoId, accept) => {
     try {
-      const res = await api.rispondiInvito(invitoId, accept);
+      await api.rispondiInvito(invitoId, accept);
       Alert.alert('Successo', `Invito ${accept ? 'accettato' : 'rifiutato'}.`);
       await loadInvites();
       if (accept) {
-        const acceptedGroupId = res?.idGruppo || res?.id_gruppo;
-        if (acceptedGroupId) {
-          setGruppo(acceptedGroupId);
+        const groups = await api.getGruppi();
+        if (groups && groups.length > 0) {
+          const { setGruppo } = require('../../services/api');
+          const acceptedGroup = groups[groups.length - 1];
+          setGruppo(acceptedGroup.id_gruppo);
           await loadData();
-        } else {
-          const groups = await api.getGruppi();
-          if (groups && groups.length > 0) {
-            const acceptedGroup = groups[groups.length - 1];
-            setGruppo(acceptedGroup.id_gruppo);
-            await loadData();
-          }
         }
       }
       fetchProfileAndMembers();
@@ -385,6 +368,7 @@ export default function UserScreen({ navigation }) {
   };
 
   const handleAbandonHouse = async () => {
+    const { getGruppo, setGruppo } = require('../../services/api');
     const activeId = getGruppo();
     if (!activeId) {
       Alert.alert('Errore', 'Nessuna casa attiva selezionata.');
@@ -407,6 +391,7 @@ export default function UserScreen({ navigation }) {
               if (groups && groups.length > 0) {
                 setGruppo(groups[0].id_gruppo);
                 await loadData();
+                fetchProfileAndMembers();
               } else {
                 setGruppo(null);
                 navigation.replace('Login');
@@ -436,13 +421,7 @@ export default function UserScreen({ navigation }) {
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{userProfile.name}</Text>
             <Text style={styles.profileEmail}>{userProfile.email}</Text>
-            {currentUserRole ? (
-              <View style={[styles.proBadge, { borderColor: ROLE_COLORS[currentUserRole] + '50', backgroundColor: ROLE_COLORS[currentUserRole] + '20' }]}>
-                <Text style={[styles.proBadgeText, { color: ROLE_COLORS[currentUserRole] }]}>{currentUserRole}</Text>
-              </View>
-            ) : null}
           </View>
-
           <TouchableOpacity style={styles.editBtn} onPress={() => setCredentialsModal(true)}>
             <MaterialCommunityIcons name="pencil" size={16} color={Colors.accent} />
           </TouchableOpacity>
