@@ -63,3 +63,32 @@ export const getScenarioIcon = (iconStr) => {
 
 
 
+  '🚿': 'shower',
+  '🚗': 'garage',
+  '🌿': 'tree',
+  'sofa': 'sofa',
+  'bed': 'bed',
+  'stove': 'stove',
+  'shower': 'shower',
+  'garage': 'garage',
+  'tree': 'tree',
+};
+
+export const getRoomIcon = (iconStr) => {
+  return ROOM_ICONS[iconStr] || 'home';
+};
+
+export const SCENARIO_ICONS = {
+  '🎬': 'lightning-bolt',
+  '⚡': 'lightning-bolt',
+  '⭕': 'circle-outline',
+  'lightning-bolt': 'lightning-bolt',
+  'circle-outline': 'circle-outline',
+};
+
+export const getScenarioIcon = (iconStr) => {
+  return SCENARIO_ICONS[iconStr] || 'lightning-bolt';
+};
+
+
+
