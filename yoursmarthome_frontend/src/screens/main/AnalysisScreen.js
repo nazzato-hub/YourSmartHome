@@ -9,7 +9,7 @@ import { Colors, Typography, Spacing, Radius, Shadow } from '../../theme';
 import AppHeader from '../../components/AppHeader';
 import { useDeviceStore } from '../../store/DeviceStore';
 import { useFocusEffect } from '@react-navigation/native';
-import { api, getGruppo } from '../../services/api';
+const { api, getGruppo } = require('../../services/api');
 
 const PERIOD_TABS = ['Oggi', 'Settimana', 'Mese', 'Anno'];
 
@@ -87,7 +87,7 @@ export default function AnalysisScreen({ navigation }) {
   const [showBudgetModal, setShowBudgetModal] = useState(false);
   const [newBudgetInput, setNewBudgetInput] = useState('');
 
-  const { rooms, devices, groupId, loadData } = useDeviceStore();
+  const { rooms, devices, loadData } = useDeviceStore();
 
   const loadAnalysisData = async () => {
     try {
@@ -113,9 +113,8 @@ export default function AnalysisScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       loadAnalysisData();
-    }, [activePeriod, groupId])
+    }, [activePeriod])
   );
-
 
   const handleUpdateBudget = async () => {
     const val = parseFloat(newBudgetInput);
