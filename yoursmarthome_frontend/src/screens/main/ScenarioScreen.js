@@ -8,7 +8,7 @@ import {
 import { Colors, Typography, Spacing, Radius, Shadow } from '../../theme';
 import AppHeader from '../../components/AppHeader';
 import { useDeviceStore } from '../../store/DeviceStore';
-import { api } from '../../services/api';
+const { api } = require('../../services/api');
 
 const SCENARIO_ICON_MAP = {
   '⚡': 'lightning-bolt',
