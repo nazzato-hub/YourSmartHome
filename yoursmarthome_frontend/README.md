@@ -1,6 +1,6 @@
 # YourSmartHome — React Native App (Expo)
 
-Applicazione mobile smart home per il controllo domotico integrato, sviluppata in **React Native** con il framework **Expo**. L'applicazione implementa un'interfaccia utente moderna a tema scuro (dark mode), una navigazione strutturata con persistenza della barra inferiore (tab bar), e un'integrazione client-server tramite API REST e notifiche push.
+Applicazione mobile smart home per il controllo domotico integrato, sviluppata in **React Native** con il framework **Expo**. L'applicazione implementa un'interfaccia utente moderna a tema scuro (dark mode), una navigazione strutturata con persistenza della barra inferiore (tab bar), e un'integrazione client-server tramite API REST e notifiche in-app animate (100% cross-platform).
 
 ---
 
@@ -10,7 +10,7 @@ La struttura delle cartelle dell'applicazione frontend è organizzata come segue
 
 ```
 YourSmartHome/
-├── App.js                          # Entry point dell'applicazione (registrazione notif. e DeviceProvider)
+├── App.js                          # Entry point dell'applicazione (carica AppNavigator e DeviceProvider)
 ├── app.json                        # Configurazione del progetto Expo
 ├── package.json                    # Dipendenze del progetto e script npm
 ├── index.js                        # Registrazione iniziale di Expo
@@ -51,6 +51,7 @@ YourSmartHome/
 
 L'applicazione utilizza un sistema di **React Context** combinato con `useReducer` all'interno di [DeviceStore.js](file:///c:/Users/gaiat/OneDrive/Desktop/Academy/app/YourSmartHome/src/store/DeviceStore.js) per:
 - Centralizzare lo stato dei dispositivi domotici, delle stanze, del budget e delle notifiche.
+- Gestire il ciclo di vita e la visualizzazione del banner di notifica in-app animato (`InAppNotificationBanner`).
 - Sincronizzare le modifiche dell'utente (es. accensione di una luce, variazione temperatura termostato) con il backend e aggiornare lo stato locale.
 - Gestire il caricamento iniziale dei dati subito dopo l'autenticazione.
 
@@ -116,7 +117,7 @@ Definito centralmente in [theme/index.js](file:///c:/Users/gaiat/OneDrive/Deskto
 | **RegisterScreen** | Registration | Form di registrazione account con inserimento credenziali ed accettazione condizioni. |
 | **ForgotPasswordScreen** | Forgot Password | Recupero credenziali tramite invio codice temporaneo e reimpostazione password. |
 | **HomeScreen** | Home (Dashboard) | Mostra i sensori meteo, temperatura della casa, controllo rapido dei dispositivi preferiti e attivazione scenari. |
-| **AddDeviceScreen** | Add device | Scanner Bluetooth fittizio con cerchi concentrici animati per l'aggiunta di nuovi moduli domotici. |
+| **AddDeviceScreen** | Add device | Scanner Bluetooth fittizio con cerchi concentrici animati per l'aggiunta di nuovi moduli domotici (con vincolo di assegnazione obbligatoria ad una stanza). |
 | **RoomsScreen** | Rooms list | Lista delle stanze configurate con contatore dei dispositivi attivi in tempo reale. |
 | **RoomDetailScreen** | Room Detail | Focus sulla singola stanza, con lista dei dispositivi e controllo massivo. |
 | **DeviceScreen** | Device Control | Controllo del singolo dispositivo (slider luminosità/temperatura, timer spegnimento, programmazione oraria). |
