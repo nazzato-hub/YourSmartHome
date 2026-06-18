@@ -242,7 +242,4 @@ BEGIN
   INSERT INTO dispositivo (nome, tipo_dispositivo, stato_attuale, consumo_watt) VALUES ('Console Giochi', 'Altro', false, 150);
   INSERT INTO dispositivo (nome, tipo_dispositivo, stato_attuale, consumo_watt) VALUES ('Presa Ricarica', 'Altro', false, 5);
 
-  -- Assegna tutti i dispositivi di test appena creati al primo gruppo
-  UPDATE dispositivo SET id_gruppo = (SELECT id_gruppo FROM gruppo_familiare LIMIT 1) WHERE id_gruppo IS NULL;
-
 END $$;
