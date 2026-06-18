@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, SafeAreaView, StatusBar, Animated,
@@ -9,7 +8,7 @@ import { Colors, Typography, Spacing, Radius, Shadow } from '../../theme';
 import AppHeader from '../../components/AppHeader';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDeviceStore } from '../../store/DeviceStore';
-import { api, getGruppo } from '../../services/api';
+const { api, getGruppo } = require('../../services/api');
 
 
 
@@ -239,16 +238,7 @@ function LockCard({ lock, onToggle, onBiometric, onToggleAlarm }) {
 
 /* ─── Main Screen ─── */
 export default function LockScreen({ navigation }) {
-  const { devices, updateDevice, groupId, loadData } = useDeviceStore();
-
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData])
-  );
-
-  console.log('[LockScreen] Rendered with groupId:', groupId, 'devices count:', devices.length);
-
+  const { devices, updateDevice } = useDeviceStore();
   const [activeTab, setActiveTab] = useState('locks'); // locks | log
   const [accessLog, setAccessLog] = useState([]);
   const [activeGroupPin, setActiveGroupPin] = useState('1234');
@@ -271,8 +261,7 @@ export default function LockScreen({ navigation }) {
 
   useEffect(() => {
     fetchGroupPin();
-  }, [groupId]);
-
+  }, []);
 
   // Filter devices to get only locks (Porta_Principale)
   const rawLocks = devices.filter(d => d.type === 'Porta_Principale');
@@ -308,8 +297,7 @@ export default function LockScreen({ navigation }) {
     if (activeTab === 'log') {
       loadAccessLog();
     }
-  }, [activeTab, groupId]);
-
+  }, [activeTab]);
 
   const executeUnlock = async (id) => {
     try {
@@ -366,7 +354,6 @@ export default function LockScreen({ navigation }) {
 
   const lockedCount = locks.filter(l => l.locked).length;
   const allLocked   = locks.length > 0 && lockedCount === locks.length;
-  const isSafe      = locks.length === 0 || allLocked;
 
   const handleLockAll = async () => {
     try {
@@ -391,27 +378,15 @@ export default function LockScreen({ navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
         {/* Status Hero */}
-        <View style={[styles.heroCard, !isSafe && styles.heroCardAlert]}>
+        <View style={[styles.heroCard, !allLocked && styles.heroCardAlert]}>
           <View style={styles.heroLeft}>
-            <Text style={styles.heroStatus}>
-              {locks.length === 0 
-                ? 'Nessun varco configurato' 
-                : (allLocked ? 'Casa al Sicuro' : 'Varchi Aperti')
-              }
-            </Text>
+            <Text style={styles.heroStatus}>{allLocked ? 'Casa al Sicuro' : 'Varchi Aperti'}</Text>
             <Text style={styles.heroSub}>
-              {locks.length === 0 
-                ? 'Nessuna serratura da controllare' 
-                : `${lockedCount}/${locks.length} serrature chiuse`
-              }
+              {lockedCount}/{locks.length} serrature chiuse
             </Text>
           </View>
           <View style={styles.heroRight}>
-            <MaterialCommunityIcons 
-              name={locks.length === 0 ? 'shield-check-outline' : (allLocked ? 'lock' : 'lock-open-variant')} 
-              size={48} 
-              color={isSafe ? Colors.success : Colors.danger} 
-            />
+            <MaterialCommunityIcons name={allLocked ? 'lock' : 'lock-open-variant'} size={48} color={allLocked ? Colors.success : Colors.danger} />
           </View>
         </View>
 
