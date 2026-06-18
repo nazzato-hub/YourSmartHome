@@ -1,4 +1,4 @@
-const BASE_URL = 'http://172.20.10.4:3000/api';
+const BASE_URL = 'http://localhost:3000/api';
 
 const state = { token: null, idGruppo: null };
 
@@ -82,4 +82,4 @@ const api = {
   resetPassword: function (email, code, newPassword) { return req('POST', '/auth/reset-password', { email: email, code: code, newPassword: newPassword }); },
 };
 
-export { api, setToken, setGruppo, getToken, getGruppo };
+module.exports = { api, setToken, setGruppo, getToken, getGruppo };
