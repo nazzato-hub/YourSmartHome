@@ -118,6 +118,10 @@ export default function AddDeviceScreen({ navigation }) {
 
   const handlePair = async () => {
     if (selectedDevice) {
+      if (!selectedRoomId) {
+        Alert.alert("Selezione obbligatoria", "Devi selezionare una stanza a cui associare questo dispositivo.");
+        return;
+      }
       setLoading(true);
       try {
         let consumption = 15;
@@ -149,6 +153,11 @@ export default function AddDeviceScreen({ navigation }) {
     const consumptionNum = parseFloat(manualConsumption);
     if (isNaN(consumptionNum) || consumptionNum < 0) {
       Alert.alert("Errore", "Inserisci un valore di consumo valido e positivo");
+      return;
+    }
+
+    if (!manualRoomId) {
+      Alert.alert("Selezione obbligatoria", "Devi selezionare una stanza per poter aggiungere il dispositivo.");
       return;
     }
 
@@ -276,14 +285,6 @@ export default function AddDeviceScreen({ navigation }) {
                 <View style={styles.roomSelectorContainer}>
                   <Text style={styles.roomSelectorTitle}>Assegna a una stanza:</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.roomsScroll}>
-                    <TouchableOpacity
-                      style={[styles.roomChip, selectedRoomId === null && styles.roomChipSelected]}
-                      onPress={() => setSelectedRoomId(null)}
-                    >
-                      <MaterialCommunityIcons name="cube-outline" size={14} color={Colors.textMuted} />
-                      <Text style={[styles.roomChipText, selectedRoomId === null && styles.roomChipTextSelected]}>Nessuna stanza</Text>
-                    </TouchableOpacity>
-
                     {rooms.map(room => (
                       <TouchableOpacity
                         key={room.id}
@@ -369,14 +370,6 @@ export default function AddDeviceScreen({ navigation }) {
           <View style={styles.roomSelectorContainer}>
             <Text style={styles.roomSelectorTitle}>Assegna a una stanza:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.roomsScroll}>
-              <TouchableOpacity
-                style={[styles.roomChip, manualRoomId === null && styles.roomChipSelected]}
-                onPress={() => setManualRoomId(null)}
-              >
-                <MaterialCommunityIcons name="cube-outline" size={14} color={Colors.textMuted} />
-                <Text style={[styles.roomChipText, manualRoomId === null && styles.roomChipTextSelected]}>Nessuna stanza</Text>
-              </TouchableOpacity>
-
               {rooms.map(room => (
                 <TouchableOpacity
                   key={room.id}
