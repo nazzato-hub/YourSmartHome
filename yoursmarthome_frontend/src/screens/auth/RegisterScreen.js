@@ -6,7 +6,7 @@ import {
   Platform, StatusBar, Switch, ActivityIndicator, Alert, Keyboard, TouchableWithoutFeedback,
 } from 'react-native';
 import { Colors, Typography, Spacing, Radius, Shadow } from '../../theme';
-import { api, setToken, setGruppo } from '../../services/api';
+const { api, setToken, setGruppo } = require('../../services/api');
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');
