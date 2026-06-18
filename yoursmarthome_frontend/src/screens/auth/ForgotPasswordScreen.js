@@ -7,7 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { Colors, Typography, Spacing, Radius, Shadow } from '../../theme';
-import { api } from '../../services/api';
+const { api } = require('../../services/api');
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
