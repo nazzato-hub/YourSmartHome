@@ -11,7 +11,7 @@ class DispositivoRepository {
       `SELECT d.*, s.nome AS nome_stanza, s.icona AS icona_stanza
        FROM dispositivo d
        LEFT JOIN stanza s ON s.id_stanza = d.id_stanza
-       WHERE d.id_gruppo = $1
+       WHERE s.id_gruppo = $1 OR d.id_stanza IS NULL
        ORDER BY s.nome, d.nome`,
       [idGruppo]
     );
@@ -53,9 +53,9 @@ class DispositivoRepository {
       await client.query('BEGIN');
 
       const devRes = await client.query(
-        `INSERT INTO dispositivo (nome, tipo_dispositivo, stato_attuale, consumo_watt, id_stanza, id_gruppo)
-         VALUES ($1,$2,false,$3,$4,$5) RETURNING *`,
-        [nome, tipodispositivo, consumoWatt, idStanza || null, idGruppo]
+        `INSERT INTO dispositivo (nome, tipo_dispositivo, stato_attuale, consumo_watt, id_stanza)
+         VALUES ($1,$2,false,$3,$4) RETURNING *`,
+        [nome, tipodispositivo, consumoWatt, idStanza || null]
       );
       const dev = devRes.rows[0];
 
