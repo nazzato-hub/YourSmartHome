@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, Modal, Animated,
@@ -7,7 +8,7 @@ import { Colors, Typography, Spacing, Radius, Shadow } from '../theme';
 import { useDeviceStore } from '../store/DeviceStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getScenarioIcon } from '../store/deviceConstants';
-import { api, setGruppo, getGruppo } from '../services/api';
+const { api, setGruppo, getGruppo } = require('../services/api');
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SIDEBAR_W = SCREEN_W * 0.78;
